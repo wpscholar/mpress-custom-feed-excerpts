@@ -6,68 +6,48 @@
  * Plugin URI: https://wpscholar.com/wordpress-plugins/mpress-custom-feed-excerpts/
  * Author: Micah Wood
  * Author URI: https://wpscholar.com/
- * Version: 1.0
+ * Version: 1.1
  * License: GPL3
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  *
- * Copyright 2013-2016 by Micah Wood - All rights reserved.
+ * Copyright 2013-2017 by Micah Wood - All rights reserved.
  */
 
-define( 'MPRESS_CUSTOM_FEED_EXCERPTS_VERSION', '1.0' );
+if ( ! function_exists( 'mpress_custom_feed_excerpts' ) ) {
 
-if ( ! class_exists( 'mPress_Custom_Feed_Excerpts' ) ) {
+	add_filter( 'the_content_feed', 'mpress_custom_feed_excerpts' );
 
 	/**
-	 * Class mPress_Custom_Feed_Excerpts
+	 * Customize the RSS feed content to include a summary and a read more link with optional custom text.
+	 * Only applies if the RSS feed in the WordPress settings is configured to show the entire content.
+	 *
+	 * @param string $content
+	 *
+	 * @return string
 	 */
-	class mPress_Custom_Feed_Excerpts {
-
-		private static $instance;
-
-		public static function get_instance() {
-			return self::$instance ? self::$instance : new self();
-		}
-
-		private function __construct() {
-			self::$instance = $this;
-			add_filter( 'the_content_feed', array( $this, 'the_content_feed' ) );
-		}
-
-		public function the_content_feed( $content ) {
-			if ( ! get_option( 'rss_use_excerpt' ) ) {
-				$split = preg_split( '#<span id=\"more-\d+\"><\/span>#', $content, 2, PREG_SPLIT_NO_EMPTY );
-				if ( count( $split ) === 2 ) {
-					$content = balanceTags( $split[0] . $this->more_link(), true );
-				}
+	function mpress_custom_feed_excerpts( $content ) {
+		if ( ! get_option( 'rss_use_excerpt' ) ) {
+			$post = get_post();
+			if ( $post ) {
+				$data = get_extended( $post->post_content );
+				$default_link_text = apply_filters(
+					'mpress_custom_feed_excerpts_default_link_text',
+					esc_html__( 'continue reading', 'mpress-custom-feed-excerpts' )
+				);
+				$link_text = empty( $data['more_text'] ) ? $default_link_text : $data['more_text'];
+				$link = apply_filters(
+					'mpress_custom_feed_excerpts_continue_reading_link',
+					sprintf(
+						' <a href="%s" class="more-link">%s</a>',
+						esc_url( get_the_permalink( $post ) . '#more-' . absint( $post->ID ) ),
+						esc_html( $link_text )
+					)
+				);
+				$content = wpautop( force_balance_tags( $data['main'] . $link ) );
 			}
-
-			return $content;
 		}
 
-		public function more_link_text() {
-			global $post;
-			$more_link_text = __( 'continue reading', 'mpress-custom-feed-excerpts' );
-			preg_match( '#<!--more(.*?)?-->#', $post->post_content, $matches );
-			if ( ! empty( $matches[1] ) ) {
-				$more_link_text = strip_tags( wp_kses_no_null( trim( $matches[1] ) ) );
-			}
-
-			return $more_link_text;
-		}
-
-		public function more_link() {
-			$link = sprintf(
-				' <a href="%s#more-%d" class="more-link">%s</a>',
-				get_permalink(),
-				get_the_ID(),
-				$this->more_link_text()
-			);
-
-			return apply_filters( 'mpress_custom_feed_excerpts_continue_reading_link', $link );
-		}
-
+		return $content;
 	}
-
-	add_action( 'plugins_loaded', array( 'mPress_Custom_Feed_Excerpts', 'get_instance' ) );
 
 }

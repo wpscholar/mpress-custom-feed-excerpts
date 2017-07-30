@@ -2,9 +2,9 @@
 Contributors: woodent
 Donate link: https://www.paypal.me/wpscholar
 Tags: feed, feeds, feed excerpt, WordPress feed excerpt, excerpt, excerpts, custom feed, rss, atom
-Requires at least: 3.2
-Tested up to: 4.5.2
-Stable tag: 1.0
+Requires at least: 3.9
+Tested up to: 4.8
+Stable tag: 1.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -62,7 +62,20 @@ Once the plugin is installed and activated, go to 'Reading', which is under 'Set
 
 NOTE: To customize the link text, just add your text to the more tag, like this: &lt;!--more My custom text...--&gt;
 
+= Filters =
+
+All filters have access to the current post via the `get_post()` function.
+
+* `mpress_custom_feed_excerpts_default_link_text` - Filters the default link text. Single parameter is a string containing the default link text.
+* `mpress_custom_feed_excerpts_continue_reading_link` - Filters the entire link. Single parameter is a string containing the link markup.
+
 == Changelog ==
+
+= 1.1 =
+
+* Tested in WordPress version 4.8
+* Simplified logic to rely more on WordPress core functions.
+* Added a `mpress_custom_feed_excerpts_default_link_text` filter for easily customizing the default link text.
 
 = 1.0 =
 
@@ -81,6 +94,10 @@ NOTE: To customize the link text, just add your text to the more tag, like this:
 * Initial commit
 
 == Upgrade Notice ==
+
+= 1.1 =
+
+* Plugin updated to reflect that it works with WordPress version 4.8. Simplified code to make it lighter-weight, more reliable and added a new filter.
 
 = 1.0 =
 
